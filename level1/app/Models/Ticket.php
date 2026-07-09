@@ -3,19 +3,20 @@
 namespace App\Models;
 
 use Database\Factories\TicketFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable([
-    'order_id', 'ticket_type_id', 'event_id', 'user_id',
-    'token', 'status', 'used_at',
-])]
 class Ticket extends Model
 {
     /** @use HasFactory<TicketFactory> */
     use HasFactory;
+
+    /** @var list<string> */
+    protected $fillable = [
+        'order_id', 'ticket_type_id', 'event_id', 'user_id',
+        'token', 'status', 'used_at',
+    ];
 
     public const string STATUS_ISSUED = 'issued';
 

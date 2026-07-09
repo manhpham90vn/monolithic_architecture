@@ -3,18 +3,19 @@
 namespace App\Models;
 
 use Database\Factories\TicketTypeFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['event_id', 'name', 'price', 'quantity'])]
 class TicketType extends Model
 {
     /** @use HasFactory<TicketTypeFactory> */
     use HasFactory;
+
+    /** @var list<string> */
+    protected $fillable = ['event_id', 'name', 'price', 'quantity'];
 
     protected function casts(): array
     {

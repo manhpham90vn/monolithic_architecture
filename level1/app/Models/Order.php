@@ -3,20 +3,21 @@
 namespace App\Models;
 
 use Database\Factories\OrderFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable([
-    'user_id', 'event_id', 'status', 'total_amount',
-    'expires_at', 'paid_at', 'stripe_session_id', 'stripe_payment_intent',
-])]
 class Order extends Model
 {
     /** @use HasFactory<OrderFactory> */
     use HasFactory;
+
+    /** @var list<string> */
+    protected $fillable = [
+        'user_id', 'event_id', 'status', 'total_amount',
+        'expires_at', 'paid_at', 'stripe_session_id', 'stripe_payment_intent',
+    ];
 
     public const string STATUS_PENDING = 'pending';
 
