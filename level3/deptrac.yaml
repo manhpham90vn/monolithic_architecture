@@ -1,0 +1,31 @@
+# Ép ranh giới module bằng công cụ (QĐ-3.6, Phụ lục A): module này không
+# được import internal của module kia, chỉ được đi qua Contracts\ (QĐ-3.3).
+# Chạy: composer deptrac (đưa vào CI, build đỏ khi có vi phạm).
+deptrac:
+  paths: [src]
+  layers:
+    - name: CatalogContracts
+      collectors: [{type: directory, value: src/Catalog/Contracts/.*}]
+    - name: CatalogInternal
+      collectors: [{type: directory, value: 'src/Catalog/(?!Contracts/).*'}]
+    - name: TicketingContracts
+      collectors: [{type: directory, value: src/Ticketing/Contracts/.*}]
+    - name: TicketingInternal
+      collectors: [{type: directory, value: 'src/Ticketing/(?!Contracts/).*'}]
+    - name: PaymentContracts
+      collectors: [{type: directory, value: src/Payment/Contracts/.*}]
+    - name: PaymentInternal
+      collectors: [{type: directory, value: 'src/Payment/(?!Contracts/).*'}]
+    - name: CheckInInternal
+      collectors: [{type: directory, value: src/CheckIn/.*}]
+  ruleset:
+    # Internal của mỗi module được dùng Contracts của chính nó và Contracts
+    # của module khác — không bao giờ internal của module khác.
+    CatalogInternal: [CatalogContracts, TicketingContracts]   # nghe event OrderPaid
+    TicketingInternal: [TicketingContracts, CatalogContracts, PaymentContracts]
+    PaymentInternal: [PaymentContracts]
+    CheckInInternal: [TicketingContracts]                     # soát vé qua TicketingApi
+    # Contracts tự chứa, không được kéo internal ra ngoài (QĐ-3.3).
+    CatalogContracts: []
+    TicketingContracts: []
+    PaymentContracts: []
