@@ -1,0 +1,21 @@
+{
+  // Cấu hình markdownlint cho tài liệu viết tay (README gốc + docs/).
+  "config": {
+    "default": true,
+    // Prose tiếng Việt không hard-wrap ở 80 cột.
+    "MD013": false,
+    // README/badges của Laravel dùng HTML căn giữa có chủ đích.
+    "MD033": false,
+    // Bảng dùng kiểu compact: dòng phân cách là "| --- | --- |".
+    "MD060": { "style": "compact" }
+  },
+  // Bỏ qua vendor/node_modules và các file boilerplate do Laravel /
+  // laravel-boost sinh ra (level*/README.md, level*/CLAUDE.md).
+  "ignores": [
+    "**/node_modules/**",
+    "**/vendor/**",
+    "**/.claude/**",
+    "level*/README.md",
+    "level*/CLAUDE.md"
+  ]
+}

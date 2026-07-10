@@ -1,7 +1,7 @@
 # Quy chuẩn Kiến trúc Monolith — Laravel
 
 | | |
-|---|---|
+| --- | --- |
 | **Mã tài liệu** | ARCH-MONO-01 |
 | **Phiên bản** | 1.1 |
 | **Ngày ban hành** | 2026-07-08 |
@@ -23,7 +23,7 @@ Nguyên tắc xuyên suốt: **kiến trúc là chi phí phải mua đúng lúc,
 Các từ khóa sau được dùng theo tinh thần RFC 2119:
 
 | Từ khóa | Ý nghĩa |
-|---|---|
+| --- | --- |
 | **BẮT BUỘC** | Không có ngoại lệ. Vi phạm là lỗi phải sửa trước khi merge. |
 | **KHÔNG ĐƯỢC** | Cấm tuyệt đối. Vi phạm là lỗi phải sửa trước khi merge. |
 | **NÊN / KHÔNG NÊN** | Mặc định phải theo. Làm khác được nếu có lý do chính đáng, ghi rõ trong PR. |
@@ -34,7 +34,7 @@ Quy định được đánh số theo dạng `QĐ-<nhóm>.<số>` để trích d
 ## 3. Tổng quan bốn mức
 
 | Mức | Tên | Dùng cho | Đơn vị tổ chức code |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | CRUD thuần | Blog, landing, admin nội bộ | Controller + Model mặc định của Laravel |
 | 2 | Có nghiệp vụ | E-commerce nhỏ, SaaS giai đoạn đầu | Action + DTO + Event |
 | 3 | Modular monolith | Dự án lớn, nhiều mảng nghiệp vụ, nhiều dev | Module theo nghiệp vụ |
@@ -348,7 +348,7 @@ Hạ mức là refactor cơ học theo chiều ngược lại: gộp entity về
 Dùng khi review PR có thay đổi cấu trúc:
 
 | # | Câu hỏi | Quy định |
-|---|---|---|
+| --- | --- | --- |
 | 1 | Có thêm tầng trừu tượng (Service/Repository/Action) khi chưa có tín hiệu? | QĐ-1.3, QĐ-2.6 |
 | 2 | Nghiệp vụ có nằm trong Action với một method `handle()`? | QĐ-2.1 |
 | 3 | Có truyền `array $data` giữa các tầng? | QĐ-2.3 |
@@ -388,6 +388,6 @@ Mở rộng tương tự cho từng cặp module. Lưu ý: số layer và số d
 ## Phụ lục B — Lịch sử phiên bản
 
 | Phiên bản | Ngày | Thay đổi |
-|---|---|---|
+| --- | --- | --- |
 | 1.1 | 2026-07-08 | Đổi chỗ §6.6/§6.7 cho đúng thứ tự số quy định; sửa tham chiếu sai trong QĐ-3.1 (QĐ-3.9 → QĐ-3.10) và ghi nhận `Reporting` là ngoại lệ đặt tên; thêm mục 11 vào checklist (QĐ-3.11); thêm §7.5 — tín hiệu hạ mức 4 → 3; thêm nhãn nhóm QĐ vào heading các mức; chỉnh sửa biên tập nhỏ (QĐ-3.2, Phụ lục A). |
 | 1.0 | 2026-07-08 | Ban hành lần đầu: bốn mức kiến trúc, quy định đánh số, checklist review. |

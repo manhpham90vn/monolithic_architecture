@@ -1,7 +1,7 @@
 # Spec — Trang bán vé sự kiện online
 
 | | |
-|---|---|
+| --- | --- |
 | **Mã tài liệu** | SPEC-TICKET-01 |
 | **Phiên bản** | 0.2 |
 | **Ngày** | 2026-07-08 |
@@ -18,7 +18,7 @@
 Các từ khóa được dùng theo tinh thần RFC 2119:
 
 | Từ khóa | Ý nghĩa |
-|---|---|
+| --- | --- |
 | **BẮT BUỘC** | Yêu cầu tuyệt đối, không có ngoại lệ. |
 | **KHÔNG ĐƯỢC** | Cấm tuyệt đối. |
 | **NÊN / KHÔNG NÊN** | Mặc định phải theo; làm khác được nếu có lý do chính đáng, ghi rõ. |
@@ -41,7 +41,7 @@ Hệ thống cho phép người dùng duyệt sự kiện, mua vé, thanh toán 
 Hệ thống gồm bốn mảng nghiệp vụ, đặt tên theo ngôn ngữ người dùng. Đây là ranh giới **nghiệp vụ**, không phải chỉ định kỹ thuật:
 
 | Mảng | Trách nhiệm |
-|---|---|
+| --- | --- |
 | **Catalog** | Sự kiện, hạng vé, giá, số lượng còn bán. |
 | **Ticketing** | Đơn mua, giữ/trả vé, trạng thái đơn, phát hành vé điện tử. |
 | **Payment** | Thanh toán Stripe và xác nhận đã trả tiền. |
@@ -54,7 +54,7 @@ Hệ thống gồm bốn mảng nghiệp vụ, đặt tên theo ngôn ngữ ngư
 ## 4. Vai trò người dùng
 
 | Vai trò | Được làm gì |
-|---|---|
+| --- | --- |
 | **Khách** | Xem danh sách và chi tiết sự kiện. |
 | **Người dùng** | Như khách + mua vé, xem "Vé của tôi". |
 | **Nhân viên soát vé** | Quét mã QR để xác nhận vé hợp lệ và đánh dấu đã dùng. |
@@ -114,7 +114,7 @@ Hệ thống gồm bốn mảng nghiệp vụ, đặt tên theo ngôn ngữ ngư
 ## 9. Trạng thái đơn và thanh toán
 
 | Trạng thái | Ý nghĩa |
-|---|---|
+| --- | --- |
 | **Chờ thanh toán** | Vừa tạo, đang giữ vé, chờ trả tiền. |
 | **Đã thanh toán** | Stripe xác nhận đã trả; vé được phát hành. Trạng thái cuối. |
 | **Hết hạn** | Quá 15 phút chưa trả; vé đã giữ được trả lại. Trạng thái cuối. |
@@ -165,7 +165,7 @@ Hệ thống gồm bốn mảng nghiệp vụ, đặt tên theo ngôn ngữ ngư
 Phụ lục này **không phải yêu cầu**. Bốn ứng dụng `level1/ … level4/` đều hiện thực **toàn bộ** spec §2–§13 (cùng hành vi, cùng tiêu chí §13), chỉ khác **cách tổ chức code**. Mục đích giáo cụ: đặt cạnh nhau để thấy cùng một bài toán trông thế nào ở bốn độ trưởng thành kiến trúc — chiếu theo `README.md`.
 
 | Mức | Tổ chức code (cùng một spec đầy đủ) | Điểm cần quan sát |
-|---|---|---|
+| --- | --- | --- |
 | **1 — CRUD thuần** | Controller gọi thẳng Eloquent; validation trong Form Request; phân quyền trong Policy. Toàn bộ nghiệp vụ (đặt đơn, xác nhận thanh toán, phát hành vé, hết hạn đơn, soát vé) nằm ngay trong Controller/Command. Không Action/Service/Repository (QĐ-1.1, QĐ-1.3). | Controller phình to, logic trùng lặp — chính là các tín hiệu nâng mức ở §4.4. Đây là "phản diện" cố ý: cho thấy **vì sao** cần mức 2. |
 | **2 — Có nghiệp vụ** | Một app phẳng. Mỗi nghiệp vụ là một Action (`PlaceOrder`, `ConfirmPayment`, `CheckInTicket`, `ExpireStaleOrders`) với một method `handle()`; dữ liệu qua DTO; việc phụ (gửi mail, phát hành vé) đẩy qua Event `OrderPaid` → Listener (QĐ-2.1, QĐ-2.3, QĐ-2.5). Chưa chia module. | Nghiệp vụ đã tách khỏi HTTP, nhưng bốn mảng §3 vẫn trộn chung thư mục kỹ thuật — tín hiệu §5.4 để lên mức 3. |
 | **3 — Modular monolith** | Tách **Catalog / Ticketing / Payment / Check-in** thành module theo §3. Giao tiếp qua Contracts: Ticketing gọi Catalog để giữ/trả vé, Check-in gọi Public API của Ticketing; `OrderPaid` là event chéo module; không JOIN/khóa ngoại chéo module; ranh giới ép bằng deptrac trong CI (QĐ-3.3, QĐ-3.4, QĐ-3.7, QĐ-3.6). | YC-3.1 (mỗi mảng sở hữu dữ liệu của mình) giờ được **ép bằng công cụ**, không còn chỉ là quy ước. |
