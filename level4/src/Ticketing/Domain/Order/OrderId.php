@@ -8,7 +8,7 @@ use InvalidArgumentException;
  * Định danh đơn — Value Object. Đơn chưa lưu chưa có OrderId (aggregate
  * giữ ?OrderId); sau khi Repository lưu mới có định danh dương.
  */
-final class OrderId
+final readonly class OrderId
 {
     public function __construct(public readonly int $value)
     {

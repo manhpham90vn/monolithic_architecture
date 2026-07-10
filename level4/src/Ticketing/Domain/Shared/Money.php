@@ -9,7 +9,7 @@ use InvalidArgumentException;
  * Laravel tồn tại (QĐ-4.1): trạng thái không hợp lệ (tiền âm) không thể
  * biểu diễn được.
  */
-final class Money
+final readonly class Money
 {
     private function __construct(public readonly int $amount)
     {

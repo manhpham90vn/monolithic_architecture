@@ -7,7 +7,7 @@ use DomainException;
 /**
  * Bất biến §7.1: một đơn phải có ít nhất một vé.
  */
-class OrderMustHaveItems extends DomainException
+final class OrderMustHaveItems extends DomainException
 {
     public function __construct()
     {

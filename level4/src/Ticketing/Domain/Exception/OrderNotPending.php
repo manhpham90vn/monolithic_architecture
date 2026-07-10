@@ -10,7 +10,7 @@ use Ticketing\Domain\Order\OrderStatus;
  * sang paid/expired/cancelled. Chặn mọi chuyển trạng thái không hợp lệ
  * ngay trong aggregate thay vì rải `->update(['status' => ...])` khắp nơi.
  */
-class OrderNotPending extends DomainException
+final class OrderNotPending extends DomainException
 {
     public static function is(OrderStatus $status): self
     {

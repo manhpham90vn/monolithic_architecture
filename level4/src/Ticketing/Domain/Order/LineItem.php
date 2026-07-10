@@ -10,7 +10,7 @@ use Ticketing\Domain\Shared\Money;
  * điểm tạo đơn (YC-8.5): thay đổi giá của Catalog sau đó không đụng tới
  * LineItem đã tạo. `ticketTypeId` chỉ là ID tham chiếu sang Catalog.
  */
-final class LineItem
+final readonly class LineItem
 {
     public function __construct(
         public readonly int $ticketTypeId,

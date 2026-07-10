@@ -7,7 +7,7 @@ use InvalidArgumentException;
 /**
  * Định danh vé — Value Object.
  */
-final class TicketId
+final readonly class TicketId
 {
     public function __construct(public readonly int $value)
     {

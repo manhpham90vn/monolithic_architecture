@@ -7,7 +7,7 @@ namespace Ticketing\Domain\Order;
  * thanh toán (YC-10.1). Value Object: một token QR duy nhất gắn với một
  * hạng vé. `event_id`/`user_id` khi lưu lấy từ chính Order, không lặp ở đây.
  */
-final class IssuedTicket
+final readonly class IssuedTicket
 {
     public function __construct(
         public readonly string $token,
