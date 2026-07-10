@@ -1,7 +1,15 @@
-# Ép ranh giới module bằng công cụ (QĐ-3.6, Phụ lục A): module này không
-# được import internal của module kia, chỉ được đi qua Contracts\ (QĐ-3.3).
-# Ở mức 4, Ticketing thêm ranh giới nội module: Domain thuần KHÔNG được phụ
-# thuộc bất kỳ layer nào khác (QĐ-4.1). Chạy: composer deptrac (đưa vào CI).
+# Ép ranh giới bằng công cụ (QĐ-3.6, Phụ lục A). Hai tầng ràng buộc:
+#
+#  1) Ranh giới GIỮA module (như mức 3): module chỉ đụng Contracts\ của
+#     module khác, không bao giờ internal (QĐ-3.3).
+#  2) Ranh giới NỘI module Ticketing (mức 4, QĐ-4.1/4.2): tách Domain /
+#     Application / Infrastructure theo README §7.2 và ép chiều phụ thuộc:
+#       - Domain: POPO thuần, KHÔNG phụ thuộc layer nào.
+#       - Infrastructure: chỉ được biết Domain (map DB, hiện thực Repository).
+#       - Application: điều phối Domain + Contracts, KHÔNG chạm Infrastructure
+#         (dependency inversion — chỉ inject interface Repository của Domain).
+#
+# Chạy: composer deptrac (đưa vào CI, build đỏ khi có vi phạm).
 deptrac:
   paths: [src]
   layers:
@@ -9,31 +17,49 @@ deptrac:
       collectors: [{type: directory, value: src/Catalog/Contracts/.*}]
     - name: CatalogInternal
       collectors: [{type: directory, value: 'src/Catalog/(?!Contracts/).*'}]
-    - name: TicketingContracts
-      collectors: [{type: directory, value: src/Ticketing/Contracts/.*}]
-    # Mức 4: Domain của Ticketing là một layer riêng, cách ly hoàn toàn.
-    - name: TicketingDomain
-      collectors: [{type: directory, value: src/Ticketing/Domain/.*}]
-    - name: TicketingInternal
-      collectors: [{type: directory, value: 'src/Ticketing/(?!Contracts/|Domain/).*'}]
     - name: PaymentContracts
       collectors: [{type: directory, value: src/Payment/Contracts/.*}]
     - name: PaymentInternal
       collectors: [{type: directory, value: 'src/Payment/(?!Contracts/).*'}]
     - name: CheckInInternal
       collectors: [{type: directory, value: src/CheckIn/.*}]
+
+    # --- Ticketing: bốn tầng nội module (mức 4) ---
+    - name: TicketingContracts
+      collectors: [{type: directory, value: src/Ticketing/Contracts/.*}]
+    - name: TicketingDomain
+      collectors: [{type: directory, value: src/Ticketing/Domain/.*}]
+    # DTO của use-case coi là thuộc tầng Application (input/output của handler).
+    - name: TicketingApplication
+      collectors: [{type: directory, value: 'src/Ticketing/(Application|Data)/.*'}]
+    - name: TicketingInfrastructure
+      collectors: [{type: directory, value: src/Ticketing/Infrastructure/.*}]
+    # Còn lại (Http, Providers, Listeners, Mail, Policies, Console, ApiImpl):
+    # tầng "keo nối" của module — được phép nối mọi tầng nội bộ để wiring.
+    - name: TicketingInternal
+      collectors: [{type: directory, value: 'src/Ticketing/(?!Contracts/|Domain/|Application/|Data/|Infrastructure/).*'}]
+
   ruleset:
-    # Internal của mỗi module được dùng Contracts của chính nó và Contracts
-    # của module khác — không bao giờ internal của module khác.
+    # Cross-module: chỉ đi qua Contracts của module khác (QĐ-3.3).
     CatalogInternal: [CatalogContracts, TicketingContracts]   # nghe event OrderPaid
-    # Application/Infrastructure của Ticketing điều phối Domain + gọi Contracts.
-    TicketingInternal: [TicketingContracts, TicketingDomain, CatalogContracts, PaymentContracts]
     PaymentInternal: [PaymentContracts]
     CheckInInternal: [TicketingContracts]                     # soát vé qua TicketingApi
-    # Domain thuần: không phụ thuộc layer nào — kể cả Contracts của chính
-    # mình hay của module khác (QĐ-4.1). Chỉ dùng PHP thuần.
-    TicketingDomain: []
-    # Contracts tự chứa, không được kéo internal ra ngoài (QĐ-3.3).
+
+    # Nội module Ticketing (chiều phụ thuộc DDD):
+    TicketingDomain: []                                        # POPO thuần (QĐ-4.1)
+    TicketingInfrastructure: [TicketingDomain]                 # chỉ biết Domain (QĐ-4.2/4.3)
+    TicketingApplication: [TicketingDomain, TicketingContracts, CatalogContracts, PaymentContracts]
+    TicketingInternal: [TicketingContracts, TicketingDomain, TicketingApplication, TicketingInfrastructure, CatalogContracts, PaymentContracts]
+
+    # Contracts tự chứa, không kéo internal ra ngoài (QĐ-3.3).
     CatalogContracts: []
-    TicketingContracts: []
     PaymentContracts: []
+    TicketingContracts: []
+
+  # Ghép nối đã biết & chấp nhận: DTO PlaceOrderData có named constructor
+  # fromRequest() nhận StoreOrderRequest (tầng Http). Đây là tiện lợi map
+  # request, không phải Application gọi ngược Http — miễn trừ tường minh để
+  # deptrac vẫn ép mọi ràng buộc còn lại.
+  skip_violations:
+    Ticketing\Data\PlaceOrderData:
+      - Ticketing\Http\StoreOrderRequest
