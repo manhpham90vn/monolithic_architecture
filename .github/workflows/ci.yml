@@ -1,0 +1,69 @@
+name: CI
+
+# Bốn app độc lập (level1…level4) cùng hiện thực một spec, mỗi app có
+# composer/DB/test riêng. Chạy song song theo matrix: mỗi level một job.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Huỷ các lần chạy cũ trên cùng nhánh/PR khi có commit mới.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.level }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        level: [level1, level2, level3, level4]
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.level }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, xml, curl, bcmath, intl, sqlite3, pdo_sqlite, fileinfo, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer
+          key: composer-${{ matrix.level }}-${{ hashFiles(format('{0}/composer.lock', matrix.level)) }}
+          restore-keys: composer-${{ matrix.level }}-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare environment
+        # Tests đã ép sqlite :memory: qua phpunit.xml; chỉ cần .env + APP_KEY
+        # để framework bootstrap được.
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Code style (Pint)
+        run: vendor/bin/pint --test
+
+      - name: Module boundaries (Deptrac)
+        # Chỉ mức 3–4 ép ranh giới module bằng deptrac (QĐ-3.6, QĐ-4.1).
+        if: ${{ hashFiles(format('{0}/deptrac.yaml', matrix.level)) != '' }}
+        run: composer deptrac
+
+      - name: Tests (Pest)
+        run: php artisan test
