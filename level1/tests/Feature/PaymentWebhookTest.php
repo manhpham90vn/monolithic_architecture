@@ -53,7 +53,7 @@ it('marks the order paid and issues one ticket per quantity via the webhook (YC-
         ->and($order->paid_at)->not->toBeNull()
         ->and($order->tickets()->count())->toBe(2);
 
-    Mail::assertSent(OrderConfirmationMail::class, 1);
+    Mail::assertQueued(OrderConfirmationMail::class, 1);
 });
 
 it('is idempotent: repeated webhooks do not issue extra tickets or emails (YC-9.3)', function () {
@@ -66,7 +66,27 @@ it('is idempotent: repeated webhooks do not issue extra tickets or emails (YC-9.
     $this->postJson(route('stripe.webhook'), $payload)->assertOk();
 
     expect($order->fresh()->tickets()->count())->toBe(2);
-    Mail::assertSent(OrderConfirmationMail::class, 1);
+    Mail::assertQueued(OrderConfirmationMail::class, 1);
+});
+
+it('defers the confirmation email to the queue so a mail failure cannot roll back the payment (YC-9.3)', function () {
+    Mail::fake();
+    [$order] = pendingOrderWithSession(quantity: 2);
+
+    $response = $this->postJson(route('stripe.webhook'), completedSessionPayload($order));
+
+    // Đơn PAID + vé đã phát hành được commit độc lập với việc gửi mail.
+    $response->assertOk();
+    $order->refresh();
+    expect($order->status)->toBe(Order::STATUS_PAID)
+        ->and($order->tickets()->count())->toBe(2);
+
+    // Mail xác nhận được ĐẨY QUA QUEUE, không gửi đồng bộ trong webhook.
+    // Nhờ vậy SMTP lỗi/timeout chỉ ảnh hưởng job trong worker (tự retry),
+    // KHÔNG làm webhook trả 500 để rồi Stripe retry rơi vào idempotency và
+    // vĩnh viễn mất mail.
+    Mail::assertQueued(OrderConfirmationMail::class, 1);
+    Mail::assertNotSent(OrderConfirmationMail::class);
 });
 
 it('does not treat a browser return to the success page as payment (YC-9.2)', function () {
