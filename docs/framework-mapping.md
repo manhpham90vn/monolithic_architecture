@@ -58,7 +58,7 @@ Kết luận: viết phần lập luận ORM **đúng hai lần** — một cho 
 
 **Laravel** (README §4.2) giữ default. Tương đương:
 
-```
+```text
 # NestJS
 src/post/
   post.controller.ts        # validate bằng DTO + ValidationPipe
@@ -78,7 +78,7 @@ QĐ-1.3 (không thêm Service/Repository thừa) giữ nguyên. Lưu ý NestJS/S
 
 ### Mức 2 — Có nghiệp vụ
 
-```
+```text
 # NestJS
 src/order/
   actions/place-order.usecase.ts     # 1 class, 1 method execute()
@@ -102,7 +102,7 @@ QĐ-2.2 (không gom `OrderService` nhiều method) áp cho cả ba. Ở Spring, 
 
 ### Mức 3 — Modular monolith
 
-```
+```text
 # NestJS
 src/ordering/
   contracts/                      # public surface DUY NHẤT (QĐ-3.3)
@@ -134,7 +134,7 @@ com.app.inventory/ ...
 
 ### Mức 4 — DDD chiến thuật
 
-```
+```text
 # NestJS
 src/ordering/
   domain/order.ts                 # class thuần, không import Prisma
@@ -212,25 +212,30 @@ Không đổi.
 Ý nghĩa quy phạm **không đổi**; chỉ phần "vì sao" phải viết lại cho Data Mapper.
 
 **QĐ-2.6 (không thêm Repository ở mức ≤ 3):**
+
 - *Laravel (nguyên văn):* Eloquent đã là Active Record kèm abstraction; bọc `OrderRepositoryInterface` quanh `Order::find()` là indirection vô nghĩa.
 - *NestJS/Spring (Data Mapper):* `PrismaClient` / Spring Data repository **đã chính là** lớp data-mapper sẵn có. Bọc thêm một repository của-riêng-mình chỉ để chuyển tiếp `prisma.order.findUnique` / `jpaRepo.findById` cũng là indirection thừa. → **Kết luận giống nhau, lập luận khác.** Repository chỉ có lý do ở mức 4 (QĐ-4.2), nơi nó là ranh giới domain↔persistence chứ không phải vỏ bọc ORM.
 
 **QĐ-3.4 (không share model giữa module):**
+
 - *Laravel:* trả Eloquent Model = trao quyền `->update()/->delete()` + lazy-load object graph. Rủi ro cao, cấm gắt.
 - *NestJS (Prisma):* model là type thuần, **không** mang hành vi mutate, nên rủi ro "trao quyền ghi" thấp hơn. Mối nguy thật cần cấm là **module khác gọi thẳng `prisma` trên bảng không thuộc nó** (đây cũng là QĐ-3.7). Vẫn giữ QĐ-3.4: Public API trả **DTO của `contracts/`**, không trả Prisma model — để không rò rỉ schema nội bộ và không tạo coupling vào cột DB.
 - *Spring (JPA):* **nguy hiểm hơn Prisma** — entity JPA "managed" có **dirty checking**: sửa một field trên entity đang trong persistence context sẽ tự flush xuống DB dù không gọi `save()`. Trả entity JPA ra ngoài module = đúng loại rủi ro Active Record. → QĐ-3.4 ở Spring áp **gắt như Laravel**: Public API trả DTO/record, tuyệt đối không trả `@Entity`.
 
 **QĐ-3.11 (Public API an toàn trong transaction của module gọi):**
+
 - *Laravel:* connection tĩnh, gọi lồng nhau tự chung transaction — "đặc quyền monolith một DB".
 - *NestJS (Prisma):* transaction **không** truyền ngầm. Muốn `PlaceOrder` và `InventoryApi.reserve()` cùng một tx, phải **truyền `tx` client tường minh** qua chữ ký Public API: `reserve(tx, productId, qty)`. Ghi rõ trong `contracts/` rằng method ghi dữ liệu nhận `tx`.
 - *Spring (JPA):* `@Transactional` propagation qua proxy lo việc này gần như ngầm — gọi Public API bên trong một `@Transactional` là đã chung transaction (propagation `REQUIRED`). Gần Laravel hơn Prisma. Vẫn giữ ràng buộc QĐ-3.11: method Public API ghi dữ liệu không tự commit, không side-effect ngoài DB.
 
 **QĐ-3.12 (event chéo module xử lý sau commit):**
+
 - *Laravel:* `ShouldDispatchAfterCommit` / `$afterCommit = true`.
 - *NestJS:* `EventEmitter2` phát **đồng bộ** mặc định → phải chủ động phát event **sau khi** `$transaction` resolve, hoặc dùng outbox (`@nestjs/cqrs`). Đây là chỗ dễ sai nhất ở NestJS, ghi cảnh báo rõ.
 - *Spring:* `@TransactionalEventListener(phase = AFTER_COMMIT)` là **built-in** — khớp QĐ-3.12 tốt nhất trong ba, gần như không phải nghĩ.
 
 **Mức 4 (QĐ-4.1 domain không import framework):**
+
 - *Laravel:* phải chủ động gỡ khỏi Eloquent (mất magic) — tốn công, đúng như README §7.4 cảnh báo.
 - *NestJS/Spring (Data Mapper):* **rẻ hơn Laravel** — vì persistence vốn tách khỏi domain type, viết domain POJO + mapper là kiểu tự nhiên, không phải chống lại framework. QĐ-4.1 gần như miễn phí. Nhưng README §7.1 vẫn đúng: rẻ hơn *không* nghĩa là *nên* — chỉ lên mức 4 khi có tín hiệu §6.8.
 
