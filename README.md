@@ -46,6 +46,8 @@ Quy định được đánh số theo dạng `QĐ-<nhóm>.<số>` để trích d
 
 **QĐ-0.3** — Mức áp cho **từng ranh giới nghiệp vụ**, không phải cả hệ thống. Trang landing ở mức 1, `Ordering` ở mức 3, `Billing` ở mức 4 — trong cùng một codebase — là kiến trúc đúng, không phải thiếu nhất quán.
 
+> Bốn thư mục `level1`–`level4` cài cùng một nghiệp vụ bán vé theo bốn mức. Giải thích nhiệm vụ từng file và quy tắc "cái gì gọi vào cái gì, cái gì bị cấm" cho mỗi mức: xem [docs/code-guide.md](docs/code-guide.md).
+
 ---
 
 ## 4. Mức 1 — CRUD thuần (nhóm QĐ-1)
@@ -242,6 +244,8 @@ Event công bố cho module khác **BẮT BUỘC** nằm trong `Contracts\` củ
 **QĐ-3.6** — Ranh giới module **BẮT BUỘC** được ép bằng công cụ (`deptrac` hoặc `phparkitect`) chạy trong CI. Không có công cụ ép thì quy tắc sẽ bị vi phạm trong 3 tuần. Cấu hình mẫu: xem Phụ lục A.
 
 ### 6.5. Quy định — database
+
+> Thiết kế database cụ thể và cách schema thay đổi qua bốn mức (kèm sơ đồ ER và bảng quy tắc DB): xem [docs/database-design.md](docs/database-design.md).
 
 **QĐ-3.7** — Vẫn một database, nhưng mỗi module **BẮT BUỘC** chỉ đọc/ghi bảng của mình. **KHÔNG ĐƯỢC** JOIN chéo module, **KHÔNG ĐƯỢC** khai báo foreign key chéo module. Cần dữ liệu của module khác → gọi Public API của nó.
 
